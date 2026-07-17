@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { clampScore } from '@/lib/scoring'
+import { clampScore, scoreBand } from '@/lib/scoring'
 
 describe('clampScore', () => {
   it('passes through valid scores', () => {
@@ -18,5 +18,25 @@ describe('clampScore', () => {
   it('degrades to 0 rather than NaN when the model returns garbage', () => {
     expect(clampScore(Number.NaN)).toBe(0)
     expect(clampScore(Number.POSITIVE_INFINITY)).toBe(100)
+  })
+})
+
+describe('scoreBand', () => {
+  it('bands scores at the documented boundaries', () => {
+    expect(scoreBand(100)).toBe('strong')
+    expect(scoreBand(80)).toBe('strong')
+    expect(scoreBand(79)).toBe('fair')
+    expect(scoreBand(60)).toBe('fair')
+    expect(scoreBand(59)).toBe('weak')
+    expect(scoreBand(0)).toBe('weak')
+  })
+
+  it('bands on the rounded value, so 79.5 reads as strong', () => {
+    expect(scoreBand(79.5)).toBe('strong')
+  })
+
+  it('bands out-of-range scores by their clamped value', () => {
+    expect(scoreBand(140)).toBe('strong')
+    expect(scoreBand(Number.NaN)).toBe('weak')
   })
 })

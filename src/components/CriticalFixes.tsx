@@ -1,0 +1,53 @@
+import { CircleAlert } from 'lucide-react'
+import type { CriticalFix } from '@/schemas/analysis'
+
+type CriticalFixesProps = {
+  fixes: readonly CriticalFix[]
+}
+
+export function CriticalFixes({ fixes }: CriticalFixesProps) {
+  // A strong resume has nothing critical to fix. That's a result, not an empty
+  // box — so the section resolves rather than disappearing.
+  if (fixes.length === 0) {
+    return (
+      <section className="rounded-2xl border border-secondary/20 bg-secondary-container/40 p-8">
+        <h2 className="flex items-center gap-2.5 font-display text-lg font-semibold text-on-secondary-container">
+          <CircleAlert className="size-5" aria-hidden="true" />
+          No critical issues
+        </h2>
+        <p className="mt-2 text-sm text-on-surface-variant">
+          Nothing here is holding your resume back. Look at the suggestions below to sharpen it
+          further.
+        </p>
+      </section>
+    )
+  }
+
+  return (
+    <section className="rounded-2xl bg-error-container/60 p-8">
+      <h2 className="flex items-center gap-2.5 font-display text-lg font-semibold text-on-error-container">
+        <CircleAlert className="size-5" aria-hidden="true" />
+        Critical fixes
+      </h2>
+
+      <ul className="mt-6 space-y-6 border-t border-error/15 pt-6">
+        {fixes.map((fix) => (
+          <li key={fix.title}>
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <span className="rounded-full bg-on-error-container px-2.5 py-1 font-display text-[10px] font-semibold tracking-[0.08em] text-on-error uppercase">
+                Issue
+              </span>
+              <h3 className="font-display text-base font-semibold text-on-error-container">
+                {fix.title}
+              </h3>
+            </div>
+            <p className="mt-2 text-sm leading-relaxed text-on-surface-variant">
+              {fix.detail}{' '}
+              <span className="font-semibold text-on-error-container">Fix:</span> {fix.fix}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}

@@ -1,1 +1,67 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+@import '@fontsource-variable/geist';
+@import '@fontsource-variable/inter';
+
+/*
+ * Resonance design tokens.
+ *
+ * Tailwind 4 generates utilities from these directly — `--color-surface` becomes
+ * `bg-surface`, `text-surface`, `border-surface`. Add tokens here rather than
+ * hardcoding hex values in components, so the palette stays swappable.
+ */
+@theme {
+  /* Surfaces, lightest to most contained */
+  --color-surface: #f8f9ff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #eff4ff;
+  --color-surface-container: #e5eeff;
+  --color-surface-container-high: #dce9ff;
+
+  /* Content */
+  --color-on-surface: #0b1c30;
+  --color-on-surface-variant: #45464d;
+  --color-outline: #76777d;
+  --color-outline-variant: #c6c6cd;
+
+  /* Primary — solid black buttons, per the brief's "no gradients" rule */
+  --color-primary: #000000;
+  --color-on-primary: #ffffff;
+
+  /* Secondary — teal. Growth, progress, the "strong" score band. */
+  --color-secondary: #006a61;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #86f2e4;
+  --color-on-secondary-container: #00201d;
+
+  /* Error — the "weak" score band and critical fixes */
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  /*
+   * Warning — the "fair" score band. Not in the Resonance token list, which only
+   * names Success and Warning in prose; amber chosen to sit between the two.
+   */
+  --color-warning: #a15c00;
+  --color-warning-container: #ffddb3;
+  --color-on-warning-container: #2b1700;
+
+  /* Geist for headings and labels (engineered), Inter for prose (legible) */
+  --font-display: 'Geist Variable', system-ui, sans-serif;
+  --font-sans: 'Inter Variable', system-ui, sans-serif;
+
+  /* 8px linear scale; section gaps are deliberately large */
+  --spacing-section: 5rem;
+
+  /* Ambient only — the brief rejects heavy dropshadows */
+  --shadow-card: 0 4px 12px rgba(15, 23, 42, 0.05);
+  --shadow-modal: 0 12px 32px rgba(15, 23, 42, 0.1);
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+  -webkit-font-smoothing: antialiased;
+}

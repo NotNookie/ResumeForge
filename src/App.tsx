@@ -1,31 +1,82 @@
+import { useState } from 'react'
+import { SiteHeader } from '@/components/SiteHeader'
+import { SiteFooter } from '@/components/SiteFooter'
+import { UploadView } from '@/views/UploadView'
+import { AnalyzingView } from '@/views/AnalyzingView'
+import { ResultsView } from '@/views/ResultsView'
+import { FailureView } from '@/views/FailureView'
+import { AnalysisError, analyzeResume } from '@/api/analyze'
+import { FAILURE_COPY, type ViewState } from '@/lib/view-state'
+import { PreviewBar } from '@/dev/PreviewBar'
+
 function App() {
+  const [view, setView] = useState<ViewState>({ status: 'idle' })
+
+  async function runAnalysis(file: File) {
+    setView({ status: 'analyzing', file })
+    try {
+      const analysis = await analyzeResume(file)
+      setView({ status: 'results', analysis })
+    } catch (error) {
+      // Only AnalysisError carries a failure the UI has a screen for. Anything
+      // else is a bug or a network fault, and gets the generic screen rather
+      // than a raw message the user can't act on.
+      setView({
+        status: 'failed',
+        failure: error instanceof AnalysisError ? error.failure : 'unknown',
+        file,
+      })
+    }
+  }
+
   return (
-    <div className="min-h-svh bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <header className="border-b border-slate-200 dark:border-slate-800">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <span className="text-lg font-semibold tracking-tight">
-            Resume<span className="text-indigo-600 dark:text-indigo-400">Forge</span>
-          </span>
-        </div>
-      </header>
+    <div className="flex min-h-svh flex-col">
+      <SiteHeader />
+      <PreviewBar onSelect={setView} />
 
-      <main className="mx-auto max-w-3xl px-6 py-20 text-center">
-        <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-          Get recruiter-grade feedback on your resume
-        </h1>
-        <p className="mx-auto mt-6 max-w-xl text-lg text-pretty text-slate-600 dark:text-slate-400">
-          Upload your resume and get an ATS compatibility score, a recruiter
-          score, and specific suggestions in seconds. No account needed.
-        </p>
+      {renderView()}
 
-        <div className="mt-12 rounded-xl border border-dashed border-slate-300 p-12 dark:border-slate-700">
-          <p className="text-sm text-slate-500 dark:text-slate-500">
-            Upload coming next.
-          </p>
-        </div>
-      </main>
+      <SiteFooter />
     </div>
   )
+
+  function renderView() {
+    switch (view.status) {
+      // One screen: the dropzone and the selected-file card are the same view
+      // with and without a file.
+      case 'idle':
+      case 'fileSelected':
+        return (
+          <UploadView
+            file={view.status === 'fileSelected' ? view.file : null}
+            onFileSelected={(file) => setView({ status: 'fileSelected', file })}
+            onFileCleared={() => setView({ status: 'idle' })}
+            onAnalyze={() => {
+              if (view.status === 'fileSelected') void runAnalysis(view.file)
+            }}
+          />
+        )
+
+      case 'analyzing':
+        return <AnalyzingView fileName={view.file.name} />
+
+      case 'results':
+        return <ResultsView analysis={view.analysis} onReset={() => setView({ status: 'idle' })} />
+
+      case 'failed':
+        return (
+          <FailureView
+            failure={view.failure}
+            onRetry={() =>
+              FAILURE_COPY[view.failure].canRetrySameFile
+                ? void runAnalysis(view.file)
+                : setView({ status: 'idle' })
+            }
+            onStartOver={() => setView({ status: 'idle' })}
+          />
+        )
+    }
+  }
 }
 
 export default App

@@ -1,0 +1,69 @@
+import { RotateCw } from 'lucide-react'
+import type { Analysis } from '@/schemas/analysis'
+import { scoreBand } from '@/lib/scoring'
+import { verdictHeadline } from '@/lib/verdict'
+import { ScoreCard } from '@/components/ScoreCard'
+import { CriticalFixes } from '@/components/CriticalFixes'
+import { Strengths } from '@/components/Strengths'
+import { MissingKeywords } from '@/components/MissingKeywords'
+import { FormattingIssues } from '@/components/FormattingIssues'
+
+type ResultsViewProps = {
+  analysis: Analysis
+  onReset: () => void
+}
+
+export function ResultsView({ analysis, onReset }: ResultsViewProps) {
+  const { candidate, scores, summary, strengths, criticalFixes } = analysis
+  const headline = verdictHeadline(scoreBand(scores.overall), candidate.name)
+
+  return (
+    <main className="mx-auto max-w-6xl px-6 py-16">
+      <header>
+        {/* Editorial label + rule, borrowed from the report mock. targetRole is
+            nullable, so the label degrades to the generic form. */}
+        <p className="font-display text-xs font-semibold tracking-[0.12em] text-on-surface-variant uppercase">
+          Analysis report
+          {candidate.targetRole ? ` // ${candidate.targetRole}` : null}
+        </p>
+        <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+          {headline}
+        </h1>
+        <div className="mt-6 border-t border-on-surface" />
+        <p className="mt-6 max-w-2xl text-lg leading-relaxed text-pretty text-on-surface-variant">
+          {summary}
+        </p>
+      </header>
+
+      <div className="mt-12 grid gap-6 sm:grid-cols-3">
+        <ScoreCard label="Overall score" score={scores.overall} />
+        <ScoreCard label="ATS compatibility" score={scores.ats} />
+        <ScoreCard label="Recruiter appeal" score={scores.recruiter} />
+      </div>
+
+      <div className="mt-12 grid gap-6 lg:grid-cols-[1.6fr_1fr] lg:items-start">
+        <div className="space-y-6">
+          <CriticalFixes fixes={criticalFixes} />
+          <Strengths strengths={strengths} />
+        </div>
+
+        <aside className="space-y-8">
+          <div className="space-y-8 rounded-2xl border border-outline-variant/60 bg-surface-container-low p-8">
+            <MissingKeywords keywords={analysis.missingKeywords} />
+            <div className="border-t border-outline-variant/60" />
+            <FormattingIssues issues={analysis.formattingIssues} />
+          </div>
+
+          <button
+            type="button"
+            onClick={onReset}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-outline-variant bg-surface-container-lowest px-6 py-3.5 font-display text-sm font-medium transition-colors hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-surface"
+          >
+            <RotateCw className="size-4" aria-hidden="true" />
+            Analyze another resume
+          </button>
+        </aside>
+      </div>
+    </main>
+  )
+}
