@@ -21,7 +21,9 @@ export function Strengths({ strengths }: StrengthsProps) {
   }
 
   return (
-    <section className="rounded-2xl bg-secondary-container/60 p-8">
+    // 30% against the pink's 60%: secondary-container is a far more saturated
+    // base than error-container, so matching opacities read as mismatched weights.
+    <section className="rounded-2xl bg-secondary-container/30 p-8">
       <h2 className="flex items-center gap-2.5 font-display text-lg font-semibold text-on-secondary-container">
         <CircleCheck className="size-5" aria-hidden="true" />
         Strengths

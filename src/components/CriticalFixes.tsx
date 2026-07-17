@@ -10,7 +10,9 @@ export function CriticalFixes({ fixes }: CriticalFixesProps) {
   // box — so the section resolves rather than disappearing.
   if (fixes.length === 0) {
     return (
-      <section className="rounded-2xl border border-secondary/20 bg-secondary-container/40 p-8">
+      // Matches Strengths' tint exactly — the two sit adjacent when a resume is
+      // clean, and mismatched opacities read as an accident.
+      <section className="rounded-2xl bg-secondary-container/30 p-8">
         <h2 className="flex items-center gap-2.5 font-display text-lg font-semibold text-on-secondary-container">
           <CircleAlert className="size-5" aria-hidden="true" />
           No critical issues

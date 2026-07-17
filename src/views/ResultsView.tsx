@@ -47,7 +47,9 @@ export function ResultsView({ analysis, onReset }: ResultsViewProps) {
           <Strengths strengths={strengths} />
         </div>
 
-        <aside className="space-y-8">
+        {/* Sticky so the shorter column tracks the longer one instead of
+            stranding the reset button halfway up an empty gutter. */}
+        <aside className="space-y-6 lg:sticky lg:top-6">
           <div className="space-y-8 rounded-2xl border border-outline-variant/60 bg-surface-container-low p-8">
             <MissingKeywords keywords={analysis.missingKeywords} />
             <div className="border-t border-outline-variant/60" />

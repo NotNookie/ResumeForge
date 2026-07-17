@@ -1,5 +1,3 @@
-import { Ruler } from 'lucide-react'
-
 type FormattingIssuesProps = {
   issues: readonly string[]
 }
@@ -20,11 +18,13 @@ export function FormattingIssues({ issues }: FormattingIssuesProps) {
     <section>
       <h2 className="font-display text-lg font-semibold">Formatting</h2>
 
-      <ul className="mt-4 space-y-4">
+      {/* No icons. The mock varied them per issue, but the schema has no category
+          to vary them by, and one icon repeated three times is decoration that
+          reads as noise. A rule per row carries the separation instead. */}
+      <ul className="mt-4 divide-y divide-outline-variant/50 border-t border-outline-variant/50">
         {issues.map((issue) => (
-          <li key={issue} className="flex gap-3">
-            <Ruler className="mt-0.5 size-4 shrink-0 text-on-surface-variant" aria-hidden="true" />
-            <p className="text-sm leading-relaxed text-on-surface-variant">{issue}</p>
+          <li key={issue} className="py-3 text-sm leading-relaxed text-on-surface-variant">
+            {issue}
           </li>
         ))}
       </ul>

@@ -20,7 +20,7 @@ export function ScoreCard({ label, score }: ScoreCardProps) {
   const styles = BAND_STYLES[band]
 
   return (
-    <div className="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-8 text-center">
+    <div className="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-8 text-center shadow-card">
       <p className="font-display text-xs font-semibold tracking-[0.08em] text-on-surface-variant uppercase">
         {label}
       </p>
