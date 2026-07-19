@@ -20,28 +20,39 @@ export function ResultsView({ analysis, onReset }: ResultsViewProps) {
   return (
     <main className="mx-auto max-w-6xl px-6 py-16">
       <header>
-        {/* Editorial label + rule, borrowed from the report mock. targetRole is
-            nullable, so the label degrades to the generic form. */}
-        <p className="font-display text-xs font-semibold tracking-[0.12em] text-on-surface-variant uppercase">
-          Analysis report
-          {candidate.targetRole ? ` // ${candidate.targetRole}` : null}
-        </p>
-        <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+        {/* Editorial label + rule, borrowed from the report mock. Both halves are
+            nullable, so each degrades independently. */}
+        <div className="flex items-baseline justify-between gap-4">
+          <p className="font-display text-xs font-semibold tracking-[0.14em] text-on-surface-variant uppercase">
+            Analysis report
+            {candidate.targetRole ? ` // ${candidate.targetRole}` : null}
+          </p>
+          {candidate.name ? (
+            <p className="hidden font-display text-xs font-medium tracking-[0.04em] text-on-surface-variant sm:block">
+              {candidate.name}
+            </p>
+          ) : null}
+        </div>
+
+        <div className="mt-3 border-t-2 border-on-surface" />
+
+        <h1 className="mt-8 max-w-4xl font-display text-5xl font-semibold tracking-tight text-balance sm:text-6xl">
           {headline}
         </h1>
-        <div className="mt-6 border-t border-on-surface" />
         <p className="mt-6 max-w-2xl text-lg leading-relaxed text-pretty text-on-surface-variant">
           {summary}
         </p>
       </header>
 
-      <div className="mt-12 grid gap-6 sm:grid-cols-3">
-        <ScoreCard label="Overall score" score={scores.overall} />
+      {/* Overall leads with more room and the largest numeral; the two supporting
+          scores sit a step down beside it. */}
+      <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr]">
+        <ScoreCard label="Overall score" score={scores.overall} emphasis="primary" />
         <ScoreCard label="ATS compatibility" score={scores.ats} />
         <ScoreCard label="Recruiter appeal" score={scores.recruiter} />
       </div>
 
-      <div className="mt-12 grid gap-6 lg:grid-cols-[1.6fr_1fr] lg:items-start">
+      <div className="mt-16 grid gap-6 lg:grid-cols-[1.6fr_1fr] lg:items-start">
         <div className="space-y-6">
           <CriticalFixes fixes={criticalFixes} />
           <Strengths strengths={strengths} />

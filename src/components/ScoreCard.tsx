@@ -13,29 +13,43 @@ const BAND_STYLES: Record<ScoreBand, { text: string; bar: string }> = {
 type ScoreCardProps = {
   label: string
   score: number
+  /** The headline score gets the largest numeral; the two supporting ones sit a step down. */
+  emphasis?: 'primary' | 'secondary'
 }
 
-export function ScoreCard({ label, score }: ScoreCardProps) {
+export function ScoreCard({ label, score, emphasis = 'secondary' }: ScoreCardProps) {
   const band = scoreBand(score)
   const styles = BAND_STYLES[band]
+  const isPrimary = emphasis === 'primary'
 
   return (
-    <div className="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-8 text-center shadow-card">
-      <p className="font-display text-xs font-semibold tracking-[0.08em] text-on-surface-variant uppercase">
+    <div
+      className={`flex flex-col rounded-2xl border border-outline-variant/60 bg-surface-container-lowest shadow-card ${
+        isPrimary ? 'p-8' : 'p-7'
+      }`}
+    >
+      <p className="font-display text-[11px] font-semibold tracking-[0.1em] text-on-surface-variant uppercase">
         {label}
       </p>
 
-      <p className={`mt-3 font-display text-6xl font-semibold tabular-nums ${styles.text}`}>
-        {score}
-      </p>
+      <div className="mt-auto flex items-baseline gap-2 pt-10">
+        <span
+          className={`font-display font-semibold tabular-nums tracking-tight ${styles.text} ${
+            isPrimary ? 'text-8xl' : 'text-7xl'
+          }`}
+        >
+          {score}
+        </span>
+        <span className="font-display text-xl font-medium text-outline-variant">/100</span>
+      </div>
 
-      <p className={`mt-2 font-display text-sm font-medium ${styles.text}`}>
+      <p className={`mt-3 font-display text-sm font-semibold ${styles.text}`}>
         {SCORE_BAND_LABEL[band]}
       </p>
 
-      {/* Bar repeats the score visually; the number above is the accessible value. */}
+      {/* Bar repeats the score visually; the numeral above is the accessible value. */}
       <div
-        className="mt-6 h-1.5 overflow-hidden rounded-full bg-surface-container-high"
+        className="mt-4 h-1 overflow-hidden rounded-full bg-surface-container-high"
         role="img"
         aria-label={`${score} out of 100 — ${SCORE_BAND_LABEL[band]}`}
       >
