@@ -17,9 +17,11 @@
     "@fontsource-variable/inter": "^5.2.8",
     "@tailwindcss/vite": "^4.3.2",
     "lucide-react": "^1.24.0",
+    "mammoth": "^1.12.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "tailwindcss": "^4.3.2",
+    "unpdf": "^1.6.2",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -27,7 +29,9 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
+    "docx": "^9.7.1",
     "oxlint": "^1.71.0",
+    "pdf-lib": "^1.17.1",
     "typescript": "^7.0.2",
     "vite": "^8.1.1",
     "vitest": "^4.1.10"
