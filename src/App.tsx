@@ -7,11 +7,9 @@ import { ResultsView } from '@/views/ResultsView'
 import { FailureView } from '@/views/FailureView'
 import { AnalysisError, analyzeResume } from '@/api/analyze'
 import { FAILURE_COPY, type ViewState } from '@/lib/view-state'
-import { PreviewBar } from '@/dev/PreviewBar'
-import { presetFromUrl } from '@/dev/presets'
 
 function App() {
-  const [view, setView] = useState<ViewState>(() => presetFromUrl() ?? { status: 'idle' })
+  const [view, setView] = useState<ViewState>({ status: 'idle' })
 
   async function runAnalysis(file: File) {
     setView({ status: 'analyzing', file })
@@ -33,7 +31,6 @@ function App() {
   return (
     <div className="flex min-h-svh flex-col">
       <SiteHeader />
-      <PreviewBar onSelect={setView} />
 
       {renderView()}
 
