@@ -64,6 +64,11 @@ async function requestCompletion(prompt: string, apiKey: string): Promise<string
           responseMimeType: 'application/json',
           temperature: 0.4,
           maxOutputTokens: 4096,
+          // Cap "thinking" to a small budget. This is structured extraction, not
+          // deep reasoning, so a large thinking budget just adds latency. A
+          // budget of 0 is rejected by this model (HTTP 400); 128 is the floor
+          // that's accepted and roughly halves response time.
+          thinkingConfig: { thinkingBudget: 128 },
         },
       }),
     })

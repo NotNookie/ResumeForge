@@ -62,7 +62,7 @@ export function UploadView({ file, onFileSelected, onFileCleared, onAnalyze }: U
         </h1>
         <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-pretty text-on-surface-variant">
           Upload it and get an ATS score, a recruiter score, and the specific fixes that would move
-          them — in about ten seconds.
+          them — in under a minute.
         </p>
       </div>
 

@@ -17,7 +17,9 @@ const STAGES = [
   'Writing your report',
 ] as const
 
-const STAGE_DURATION_MS = 2800
+// A real analysis runs ~20s, so pace the four stages across most of that and
+// let the last one hold until the response lands.
+const STAGE_DURATION_MS = 4500
 
 export function AnalyzingView({ fileName }: { fileName: string }) {
   const [stageIndex, setStageIndex] = useState(0)
@@ -66,7 +68,7 @@ export function AnalyzingView({ fileName }: { fileName: string }) {
       </ol>
 
       <p className="mt-10 text-center text-xs text-on-surface-variant">
-        This usually takes about ten seconds.
+        This usually takes 15–30 seconds.
       </p>
     </main>
   )
