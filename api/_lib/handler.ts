@@ -6,6 +6,7 @@ import {
   MAX_UPLOAD_BYTES,
   NotAResumeError,
 } from './pipeline'
+import { checkRateLimit, clientIp, rateLimitStore } from './rate-limit'
 
 /** Thrown mid-stream when an upload exceeds the cap, so we stop reading rather
  * than buffer the whole oversized payload before rejecting it. */
@@ -18,6 +19,12 @@ class OversizeError extends Error {}
  */
 export async function respondToAnalyze(req: IncomingMessage, res: ServerResponse): Promise<void> {
   if (req.method !== 'POST') return sendJson(res, 405, { failure: 'unknown' })
+
+  // Reject before spending any work (body read, extraction, AI) on abuse. Reuses
+  // the rateLimited failure screen, so the user sees "try again in a bit".
+  if (!checkRateLimit(rateLimitStore, clientIp(req)).allowed) {
+    return sendJson(res, 429, { failure: 'rateLimited' })
+  }
 
   try {
     const bytes = await readBodyBytes(req)

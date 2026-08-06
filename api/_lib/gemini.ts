@@ -37,17 +37,19 @@ const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODE
 // of slow calls would otherwise blow past the serverless timeout.
 const TOTAL_BUDGET_MS = 50_000 // under Vercel's 60s maxDuration, with headroom
 const MIN_CALL_MS = 6_000 // don't start an attempt that can't plausibly finish
-const MAX_ATTEMPTS = 5 // secondary cap so fast 503s can't spin tightly
-const BACKOFF_MS = [800, 1600, 2400, 3200]
+const MAX_ATTEMPTS = 3 // each attempt is a paid call, so keep this tight
+const MAX_VALIDATION_RETRIES = 1 // one re-ask for bad JSON, then stop wasting tokens
+const BACKOFF_MS = [800, 1600]
 
 /**
  * Send the resume text to Gemini and return a validated Analysis.
  *
- * Retries a transient server error (503/network) and output that fails Zod
- * validation — the model's output is untrusted and a second attempt usually
- * lands. A 429 (quota) is surfaced immediately rather than retried. Every
- * attempt shares one deadline, and each fetch is aborted at the remaining
- * budget, so the whole call is guaranteed to return within TOTAL_BUDGET_MS.
+ * Retries a transient server error (503/network) freely within the budget, but
+ * a validation failure (the model returned unparseable/off-schema JSON) buys
+ * only one re-ask — a second bad response won't improve on a third, and each
+ * attempt costs tokens. A 429 (quota) is surfaced immediately, never retried.
+ * Every attempt shares one deadline and each fetch is aborted at the remaining
+ * budget, so the whole call returns within TOTAL_BUDGET_MS.
  */
 export async function analyzeResumeText(resumeText: string): Promise<Analysis> {
   const apiKey = process.env.GEMINI_API_KEY
@@ -59,6 +61,7 @@ export async function analyzeResumeText(resumeText: string): Promise<Analysis> {
   const deadline = Date.now() + TOTAL_BUDGET_MS
 
   let lastError: unknown
+  let validationFailures = 0
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
     const remaining = deadline - Date.now()
     if (remaining < MIN_CALL_MS) break
@@ -67,7 +70,10 @@ export async function analyzeResumeText(resumeText: string): Promise<Analysis> {
       const raw = await requestCompletion(prompt, apiKey, remaining)
       const parsed = analysisSchema.safeParse(safeJsonParse(raw))
       if (parsed.success) return parsed.data
-      lastError = parsed.error // schema drift — worth another attempt
+
+      // Bad JSON. Re-ask once; beyond that it's not going to fix itself.
+      lastError = parsed.error
+      if (++validationFailures > MAX_VALIDATION_RETRIES) break
     } catch (error) {
       if (error instanceof RateLimitedError) throw error // quota — don't retry
       if (error instanceof AiUnavailableError && !error.retryable) throw error
