@@ -17,6 +17,9 @@ export type ViewState =
   // silently means "start over", and the rate-limit copy promising the file is
   // still here would be a lie.
   | { status: 'failed'; failure: AnalysisFailure; file: File }
+  // The upload didn't look like a resume. Holds the file so "analyze anyway" can
+  // re-run it with the check forced off.
+  | { status: 'notResume'; file: File; reason: string }
 
 /**
  * Failures that end the flow and warrant their own screen. Anything the user can

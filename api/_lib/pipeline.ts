@@ -2,6 +2,7 @@ import type { Analysis } from '@/schemas/analysis'
 import type { AnalysisFailure } from '@/lib/view-state'
 import { extractResumeText, NoTextFoundError, UnreadableFileError } from './extract'
 import { analyzeResumeText, AiUnavailableError, RateLimitedError } from './gemini'
+import { looksLikeResume } from './resume-heuristic'
 
 /** Server-side ceiling. The client enforces the same, but the server must not
  * trust it — this is the real boundary. */
@@ -11,10 +12,36 @@ export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024
  * attempt to run up token cost), so it's truncated before reaching the model. */
 const MAX_RESUME_CHARS = 20_000
 
-/** Extract text, then analyze it. The one place the two halves meet. */
-export async function runAnalysis(bytes: Uint8Array, filename: string): Promise<Analysis> {
-  const text = await extractResumeText(bytes, filename)
-  return analyzeResumeText(text.slice(0, MAX_RESUME_CHARS))
+/** The upload doesn't read like a resume. Carries the reason so the UI can show
+ * the user why and offer to analyze anyway. Not an error the user must fix — a
+ * warning they can override. */
+export class NotAResumeError extends Error {
+  constructor(readonly reason: string) {
+    super(reason)
+    this.name = 'NotAResumeError'
+  }
+}
+
+/**
+ * Extract text, sanity-check that it's actually a resume, then analyze it.
+ *
+ * The resume check runs before the model call so a non-resume is caught in
+ * under a millisecond rather than after a ~20s round trip. `force` skips it —
+ * that's the "analyze anyway" path when the heuristic flagged a real resume.
+ */
+export async function runAnalysis(
+  bytes: Uint8Array,
+  filename: string,
+  options: { force?: boolean } = {},
+): Promise<Analysis> {
+  const text = (await extractResumeText(bytes, filename)).slice(0, MAX_RESUME_CHARS)
+
+  if (!options.force) {
+    const verdict = looksLikeResume(text)
+    if (!verdict.isResume) throw new NotAResumeError(verdict.reason)
+  }
+
+  return analyzeResumeText(text)
 }
 
 /**

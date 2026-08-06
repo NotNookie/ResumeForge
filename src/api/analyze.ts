@@ -12,6 +12,15 @@ export class AnalysisError extends Error {
   }
 }
 
+/** The upload didn't look like a resume. Carries the reason so the UI can show
+ * it and offer to analyze anyway. Not a hard failure — an overridable warning. */
+export class NotAResumeError extends Error {
+  constructor(readonly reason: string) {
+    super(reason)
+    this.name = 'NotAResumeError'
+  }
+}
+
 /**
  * POST the raw file to /api/analyze and return a validated Analysis.
  *
@@ -19,7 +28,10 @@ export class AnalysisError extends Error {
  * already does, but this side owns what it renders, and a shape mismatch should
  * surface as a clean failure, not a crash mid-render.
  */
-export async function analyzeResume(file: File): Promise<Analysis> {
+export async function analyzeResume(
+  file: File,
+  options: { force?: boolean } = {},
+): Promise<Analysis> {
   let response: Response
   try {
     response = await fetch('/api/analyze', {
@@ -27,6 +39,8 @@ export async function analyzeResume(file: File): Promise<Analysis> {
       headers: {
         'content-type': 'application/octet-stream',
         'x-filename': encodeURIComponent(file.name),
+        // Skip the server's resume check — the "analyze anyway" path.
+        ...(options.force ? { 'x-force-analyze': '1' } : {}),
       },
       body: file,
     })
@@ -36,7 +50,9 @@ export async function analyzeResume(file: File): Promise<Analysis> {
   }
 
   if (!response.ok) {
-    throw new AnalysisError(await readFailure(response))
+    const body: unknown = await response.json().catch(() => null)
+    if (isNotResumeBody(body)) throw new NotAResumeError(body.reason)
+    throw new AnalysisError(failureFrom(body))
   }
 
   const parsed = analysisSchema.safeParse(await response.json().catch(() => null))
@@ -44,12 +60,19 @@ export async function analyzeResume(file: File): Promise<Analysis> {
   return parsed.data
 }
 
+function isNotResumeBody(body: unknown): body is { notResume: true; reason: string } {
+  return (
+    typeof body === 'object' &&
+    body !== null &&
+    (body as { notResume?: unknown }).notResume === true &&
+    typeof (body as { reason?: unknown }).reason === 'string'
+  )
+}
+
 /** Pull the failure code out of an error response, defaulting to unknown. */
-async function readFailure(response: Response): Promise<AnalysisFailure> {
-  const body: unknown = await response.json().catch(() => null)
+function failureFrom(body: unknown): AnalysisFailure {
   const failure =
     typeof body === 'object' && body !== null ? (body as { failure?: unknown }).failure : undefined
-
   const known: AnalysisFailure[] = ['noTextFound', 'rateLimited', 'aiUnavailable', 'unknown']
   return known.includes(failure as AnalysisFailure) ? (failure as AnalysisFailure) : 'unknown'
 }

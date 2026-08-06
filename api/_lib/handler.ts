@@ -1,5 +1,11 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import { runAnalysis, statusForFailure, toAnalysisFailure, MAX_UPLOAD_BYTES } from './pipeline'
+import {
+  runAnalysis,
+  statusForFailure,
+  toAnalysisFailure,
+  MAX_UPLOAD_BYTES,
+  NotAResumeError,
+} from './pipeline'
 
 /** Thrown mid-stream when an upload exceeds the cap, so we stop reading rather
  * than buffer the whole oversized payload before rejecting it. */
@@ -19,10 +25,17 @@ export async function respondToAnalyze(req: IncomingMessage, res: ServerResponse
     if (bytes.byteLength > MAX_UPLOAD_BYTES) return sendJson(res, 413, { failure: 'unknown' })
 
     const filename = readFilename(req)
-    const analysis = await runAnalysis(bytes, filename)
+    // "x-force-analyze: 1" is the analyze-anyway override for the resume check.
+    const force = req.headers['x-force-analyze'] === '1'
+    const analysis = await runAnalysis(bytes, filename, { force })
     return sendJson(res, 200, analysis)
   } catch (error) {
     if (error instanceof OversizeError) return sendJson(res, 413, { failure: 'unknown' })
+    // Not a failure the user must fix — a warning they can override. Distinct
+    // body shape (notResume, not failure) so the client can offer "analyze anyway".
+    if (error instanceof NotAResumeError) {
+      return sendJson(res, 422, { notResume: true, reason: error.reason })
+    }
     const failure = toAnalysisFailure(error)
     // Server-side visibility; the client only ever sees the failure code.
     if (failure === 'unknown' || failure === 'aiUnavailable') console.error('[analyze]', error)
