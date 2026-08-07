@@ -19,6 +19,29 @@ const finding = z.object({
   detail: z.string().trim().min(1).max(400),
 })
 
+/** A finding that also carries a concrete correction. */
+const fixable = finding.extend({ fix: z.string().trim().min(1).max(400) })
+
+/** A term the resume is missing; priority drives chip weight in the UI. */
+const priorityKeyword = z.object({
+  keyword: z.string().trim().min(1).max(40),
+  priority: z.enum(['high', 'medium']),
+})
+
+/**
+ * Present only when the user pasted a job description. The match score compares
+ * two real documents (resume vs JD), so unlike a candidate percentile it's a
+ * defensible estimate. Nullable + defaulted: resume-only analyses omit it.
+ */
+const jobMatch = z.object({
+  matchScore: score,
+  summary: z.string().trim().min(1).max(400),
+  /** Requirements named in the JD that the resume doesn't evidence. */
+  missingRequirements: z.array(priorityKeyword).max(15),
+  /** How to rewrite the resume to fit this specific role. */
+  tailoredFixes: z.array(fixable).max(6),
+})
+
 export const analysisSchema = z.object({
   /**
    * Extracted from the resume, so both are nullable: plenty of resumes state no
@@ -43,24 +66,21 @@ export const analysisSchema = z.object({
   strengths: z.array(finding).max(6),
 
   /** Can be empty — a strong resume may have nothing critical to fix. */
-  criticalFixes: z
-    .array(finding.extend({ fix: z.string().trim().min(1).max(400) }))
-    .max(6),
+  criticalFixes: z.array(fixable).max(6),
 
-  /** priority drives chip weight in the UI: high reads as a gap, medium as a nice-to-have. */
-  missingKeywords: z
-    .array(
-      z.object({
-        keyword: z.string().trim().min(1).max(40),
-        priority: z.enum(['high', 'medium']),
-      }),
-    )
-    .max(15),
+  missingKeywords: z.array(priorityKeyword).max(15),
 
   formattingIssues: z.array(z.string().trim().min(1).max(300)).max(6),
+
+  /**
+   * The job-description comparison, or null for a resume-only analysis. Defaulted
+   * so the model omitting the key (the common, no-JD case) parses cleanly.
+   */
+  jobMatch: jobMatch.nullable().default(null),
 })
 
 export type Analysis = z.infer<typeof analysisSchema>
 export type Finding = Analysis['strengths'][number]
 export type CriticalFix = Analysis['criticalFixes'][number]
 export type MissingKeyword = Analysis['missingKeywords'][number]
+export type JobMatch = NonNullable<Analysis['jobMatch']>

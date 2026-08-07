@@ -1,14 +1,26 @@
 import { useState, type DragEvent } from 'react'
-import { ArrowRight, FileText, Gauge, ShieldCheck, Trash2, TriangleAlert, Zap } from 'lucide-react'
+import {
+  ArrowRight,
+  Briefcase,
+  FileText,
+  Gauge,
+  ShieldCheck,
+  Trash2,
+  TriangleAlert,
+  Zap,
+} from 'lucide-react'
 import {
   ACCEPTED_EXTENSIONS,
   formatFileSize,
+  MAX_JOB_DESCRIPTION_CHARS,
   validateResumeFile,
   type FileRejection,
 } from '@/lib/upload'
 
 type UploadViewProps = {
   file: File | null
+  jobDescription: string
+  onJobDescriptionChange: (value: string) => void
   onFileSelected: (file: File) => void
   onFileCleared: () => void
   onAnalyze: () => void
@@ -37,7 +49,14 @@ const ASSURANCES = [
   },
 ] as const
 
-export function UploadView({ file, onFileSelected, onFileCleared, onAnalyze }: UploadViewProps) {
+export function UploadView({
+  file,
+  jobDescription,
+  onJobDescriptionChange,
+  onFileSelected,
+  onFileCleared,
+  onAnalyze,
+}: UploadViewProps) {
   const [rejection, setRejection] = useState<FileRejection | null>(null)
   const [isDraggingOver, setIsDraggingOver] = useState(false)
 
@@ -68,7 +87,13 @@ export function UploadView({ file, onFileSelected, onFileCleared, onAnalyze }: U
 
       <div className="mt-14">
         {file ? (
-          <SelectedFile file={file} onClear={onFileCleared} onAnalyze={onAnalyze} />
+          <SelectedFile
+            file={file}
+            jobDescription={jobDescription}
+            onJobDescriptionChange={onJobDescriptionChange}
+            onClear={onFileCleared}
+            onAnalyze={onAnalyze}
+          />
         ) : (
           <>
             {/* The label is both drop target and click target, so the native
@@ -138,13 +163,21 @@ export function UploadView({ file, onFileSelected, onFileCleared, onAnalyze }: U
 
 function SelectedFile({
   file,
+  jobDescription,
+  onJobDescriptionChange,
   onClear,
   onAnalyze,
 }: {
   file: File
+  jobDescription: string
+  onJobDescriptionChange: (value: string) => void
   onClear: () => void
   onAnalyze: () => void
 }) {
+  // Open by default if a JD is already present (e.g. returning from a retry).
+  const [showJob, setShowJob] = useState(jobDescription.trim().length > 0)
+  const remaining = MAX_JOB_DESCRIPTION_CHARS - jobDescription.length
+
   return (
     <div className="mx-auto max-w-xl text-center">
       <div className="flex items-center gap-4 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-4 text-left shadow-card">
@@ -168,12 +201,49 @@ function SelectedFile({
         </button>
       </div>
 
+      {/* Optional JD: a quiet reveal so the default stays a one-click flow. */}
+      <div className="mt-4 text-left">
+        {showJob ? (
+          <div className="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-4 shadow-card">
+            <label
+              htmlFor="job-description"
+              className="flex items-center gap-2 font-display text-sm font-medium"
+            >
+              <Briefcase className="size-4 text-secondary" aria-hidden="true" />
+              Compare to a job description
+              <span className="font-sans font-normal text-on-surface-variant">(optional)</span>
+            </label>
+            <textarea
+              id="job-description"
+              value={jobDescription}
+              maxLength={MAX_JOB_DESCRIPTION_CHARS}
+              onChange={(event) => onJobDescriptionChange(event.target.value)}
+              placeholder="Paste the job posting here to see how well your resume fits and what to change."
+              className="mt-3 h-36 w-full resize-y rounded-lg border border-outline-variant bg-surface p-3 text-sm leading-relaxed outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+            />
+            <p className="mt-1.5 text-right text-xs text-on-surface-variant tabular-nums">
+              {remaining.toLocaleString()} characters left
+            </p>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowJob(true)}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-outline-variant px-4 py-3.5 font-display text-sm font-medium text-on-surface-variant transition-colors hover:border-outline hover:text-on-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-surface"
+          >
+            <Briefcase className="size-4" aria-hidden="true" />
+            Compare to a job description
+            <span className="font-sans font-normal">(optional)</span>
+          </button>
+        )}
+      </div>
+
       <button
         type="button"
         onClick={onAnalyze}
         className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary px-8 py-4 font-display text-base font-medium text-on-primary shadow-card transition-transform hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-surface"
       >
-        Analyze resume
+        {jobDescription.trim() ? 'Analyze & compare' : 'Analyze resume'}
         <ArrowRight className="size-4" aria-hidden="true" />
       </button>
     </div>

@@ -1,5 +1,6 @@
 import { analysisSchema, type Analysis } from '@/schemas/analysis'
 import type { AnalysisFailure } from '@/lib/view-state'
+import { MAX_JOB_DESCRIPTION_CHARS } from '@/lib/upload'
 
 /**
  * Carries a failure the UI has a dedicated screen for. Anything unexpected
@@ -30,8 +31,10 @@ export class NotAResumeError extends Error {
  */
 export async function analyzeResume(
   file: File,
-  options: { force?: boolean } = {},
+  options: { force?: boolean; jobDescription?: string } = {},
 ): Promise<Analysis> {
+  const jd = options.jobDescription?.trim().slice(0, MAX_JOB_DESCRIPTION_CHARS)
+
   let response: Response
   try {
     response = await fetch('/api/analyze', {
@@ -41,6 +44,8 @@ export async function analyzeResume(
         'x-filename': encodeURIComponent(file.name),
         // Skip the server's resume check — the "analyze anyway" path.
         ...(options.force ? { 'x-force-analyze': '1' } : {}),
+        // Optional JD travels URL-encoded in a header, keeping the body raw.
+        ...(jd ? { 'x-job-description': encodeURIComponent(jd) } : {}),
       },
       body: file,
     })

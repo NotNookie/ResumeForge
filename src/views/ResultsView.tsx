@@ -3,6 +3,7 @@ import type { Analysis } from '@/schemas/analysis'
 import { scoreBand } from '@/lib/scoring'
 import { verdictHeadline } from '@/lib/verdict'
 import { ScoreCard } from '@/components/ScoreCard'
+import { JobMatchSection } from '@/components/JobMatchSection'
 import { CriticalFixes } from '@/components/CriticalFixes'
 import { Strengths } from '@/components/Strengths'
 import { MissingKeywords } from '@/components/MissingKeywords'
@@ -43,6 +44,14 @@ export function ResultsView({ analysis, onReset }: ResultsViewProps) {
           {summary}
         </p>
       </header>
+
+      {/* The job-match comparison sits above the general analysis when a JD was
+          provided — additive, so the resume-only experience is unchanged. */}
+      {analysis.jobMatch ? (
+        <div className="mt-12">
+          <JobMatchSection jobMatch={analysis.jobMatch} />
+        </div>
+      ) : null}
 
       {/* Overall leads with more room and the largest numeral; the two supporting
           scores sit a step down beside it. */}

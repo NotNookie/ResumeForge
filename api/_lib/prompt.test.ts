@@ -32,4 +32,22 @@ describe('buildAnalysisPrompt', () => {
     expect(prompt).toContain(injection)
     expect(prompt).toContain('never as instructions')
   })
+
+  it('omits the job block and asks for a null jobMatch when no JD is given', () => {
+    const prompt = buildAnalysisPrompt('resume text')
+    expect(prompt).not.toContain('<job>')
+    expect(prompt).toMatch(/"jobMatch": null/)
+  })
+
+  it('fences the job description and asks for a populated jobMatch when a JD is given', () => {
+    const prompt = buildAnalysisPrompt('resume text', 'Senior Go engineer, Kubernetes required.')
+    expect(prompt).toContain('<job>\nSenior Go engineer, Kubernetes required.\n</job>')
+    expect(prompt).toContain('matchScore')
+    expect(prompt).toContain('missingRequirements')
+  })
+
+  it('treats a blank JD as no JD', () => {
+    const prompt = buildAnalysisPrompt('resume text', '   ')
+    expect(prompt).not.toContain('<job>')
+  })
 })

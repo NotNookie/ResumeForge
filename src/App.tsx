@@ -11,11 +11,20 @@ import { FAILURE_COPY, type ViewState } from '@/lib/view-state'
 
 function App() {
   const [view, setView] = useState<ViewState>({ status: 'idle' })
+  // Held alongside the view rather than inside it: the JD is entered on the
+  // upload screen but must survive into a retry or "analyze anyway", and is
+  // cleared only when the user starts over.
+  const [jobDescription, setJobDescription] = useState('')
+
+  function startOver() {
+    setJobDescription('')
+    setView({ status: 'idle' })
+  }
 
   async function runAnalysis(file: File, options: { force?: boolean } = {}) {
     setView({ status: 'analyzing', file })
     try {
-      const analysis = await analyzeResume(file, options)
+      const analysis = await analyzeResume(file, { ...options, jobDescription })
       setView({ status: 'results', analysis })
     } catch (error) {
       // The heuristic flagged a non-resume: a warning the user can override.
@@ -53,6 +62,8 @@ function App() {
         return (
           <UploadView
             file={view.status === 'fileSelected' ? view.file : null}
+            jobDescription={jobDescription}
+            onJobDescriptionChange={setJobDescription}
             onFileSelected={(file) => setView({ status: 'fileSelected', file })}
             onFileCleared={() => setView({ status: 'idle' })}
             onAnalyze={() => {
@@ -65,14 +76,14 @@ function App() {
         return <AnalyzingView fileName={view.file.name} />
 
       case 'results':
-        return <ResultsView analysis={view.analysis} onReset={() => setView({ status: 'idle' })} />
+        return <ResultsView analysis={view.analysis} onReset={startOver} />
 
       case 'notResume':
         return (
           <NotResumeView
             reason={view.reason}
             onAnalyzeAnyway={() => void runAnalysis(view.file, { force: true })}
-            onChooseAnother={() => setView({ status: 'idle' })}
+            onChooseAnother={startOver}
           />
         )
 
@@ -83,9 +94,9 @@ function App() {
             onRetry={() =>
               FAILURE_COPY[view.failure].canRetrySameFile
                 ? void runAnalysis(view.file)
-                : setView({ status: 'idle' })
+                : startOver()
             }
-            onStartOver={() => setView({ status: 'idle' })}
+            onStartOver={startOver}
           />
         )
     }

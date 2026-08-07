@@ -25,6 +25,38 @@ describe('analysisSchema', () => {
     expect(analysisSchema.safeParse(validAnalysis()).success).toBe(true)
   })
 
+  it('defaults jobMatch to null when the resume-only response omits it', () => {
+    const result = analysisSchema.parse(validAnalysis())
+    expect(result.jobMatch).toBeNull()
+  })
+
+  it('accepts a populated jobMatch and clamps its score', () => {
+    const result = analysisSchema.parse({
+      ...validAnalysis(),
+      jobMatch: {
+        matchScore: 130,
+        summary: 'Strong fit, missing a couple of required tools.',
+        missingRequirements: [{ keyword: 'Kubernetes', priority: 'high' as const }],
+        tailoredFixes: [
+          { title: 'Surface cloud work', detail: 'The JD centers on AWS.', fix: 'Add an AWS bullet.' },
+        ],
+      },
+    })
+    expect(result.jobMatch?.matchScore).toBe(100)
+    expect(result.jobMatch?.missingRequirements[0]?.keyword).toBe('Kubernetes')
+  })
+
+  it('rejects a jobMatch missing its score', () => {
+    const { matchScore: _omit, ...noScore } = {
+      matchScore: 70,
+      summary: 'ok',
+      missingRequirements: [],
+      tailoredFixes: [],
+    }
+    const result = analysisSchema.safeParse({ ...validAnalysis(), jobMatch: noScore })
+    expect(result.success).toBe(false)
+  })
+
   it('clamps out-of-range scores instead of rejecting the whole analysis', () => {
     const result = analysisSchema.parse({
       ...validAnalysis(),

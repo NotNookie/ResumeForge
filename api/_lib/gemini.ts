@@ -51,13 +51,16 @@ const BACKOFF_MS = [800, 1600]
  * Every attempt shares one deadline and each fetch is aborted at the remaining
  * budget, so the whole call returns within TOTAL_BUDGET_MS.
  */
-export async function analyzeResumeText(resumeText: string): Promise<Analysis> {
+export async function analyzeResumeText(
+  resumeText: string,
+  jobDescription?: string,
+): Promise<Analysis> {
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) {
     throw new AiUnavailableError('GEMINI_API_KEY is not set in the server environment.')
   }
 
-  const prompt = buildAnalysisPrompt(resumeText)
+  const prompt = buildAnalysisPrompt(resumeText, jobDescription)
   const deadline = Date.now() + TOTAL_BUDGET_MS
 
   let lastError: unknown

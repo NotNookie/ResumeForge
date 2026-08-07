@@ -1,6 +1,11 @@
 export const MAX_FILE_BYTES = 5 * 1024 * 1024
 export const ACCEPTED_EXTENSIONS = ['.pdf', '.docx'] as const
 
+/** Client-side cap for the optional job description. The server enforces its own
+ * (it never trusts the client); this one keeps the header small and the textarea
+ * honest about the limit. */
+export const MAX_JOB_DESCRIPTION_CHARS = 6_000
+
 const ACCEPTED_MIME_TYPES = new Set([
   'application/pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',

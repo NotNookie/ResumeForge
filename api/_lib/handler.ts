@@ -34,7 +34,11 @@ export async function respondToAnalyze(req: IncomingMessage, res: ServerResponse
     const filename = readFilename(req)
     // "x-force-analyze: 1" is the analyze-anyway override for the resume check.
     const force = req.headers['x-force-analyze'] === '1'
-    const analysis = await runAnalysis(bytes, filename, { force })
+    // The optional job description rides in a header (URL-encoded), not the body,
+    // which stays the raw file. The client caps its length; the pipeline caps it
+    // again.
+    const jobDescription = readJobDescription(req)
+    const analysis = await runAnalysis(bytes, filename, { force, jobDescription })
     return sendJson(res, 200, analysis)
   } catch (error) {
     if (error instanceof OversizeError) return sendJson(res, 413, { failure: 'unknown' })
@@ -81,6 +85,21 @@ function readFilename(req: IncomingMessage): string {
   } catch {
     return raw
   }
+}
+
+/** The optional job description, URL-encoded in a header. Undefined when absent
+ * or empty; the pipeline enforces the real length cap. */
+function readJobDescription(req: IncomingMessage): string | undefined {
+  const header = req.headers['x-job-description']
+  const raw = Array.isArray(header) ? header[0] : header
+  if (!raw) return undefined
+  let decoded: string
+  try {
+    decoded = decodeURIComponent(raw)
+  } catch {
+    decoded = raw
+  }
+  return decoded.trim() || undefined
 }
 
 function sendJson(res: ServerResponse, status: number, body: unknown): void {
