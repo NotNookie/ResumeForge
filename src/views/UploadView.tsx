@@ -85,17 +85,13 @@ export function UploadView({
         </p>
       </div>
 
-      <div className="mt-14">
+      {/* Resume and job description are peer inputs in one centred column. The
+          JD is always visible so it reads as an offered option, not a hidden one. */}
+      <div className="mx-auto mt-14 max-w-2xl space-y-4">
         {file ? (
-          <SelectedFile
-            file={file}
-            jobDescription={jobDescription}
-            onJobDescriptionChange={onJobDescriptionChange}
-            onClear={onFileCleared}
-            onAnalyze={onAnalyze}
-          />
+          <SelectedFile file={file} onClear={onFileCleared} />
         ) : (
-          <>
+          <div>
             {/* The label is both drop target and click target, so the native
                 input stays keyboard-accessible instead of being replaced by a
                 div with a click handler. */}
@@ -144,8 +140,28 @@ export function UploadView({
                 {rejection.message}
               </p>
             ) : null}
-          </>
+          </div>
         )}
+
+        <JobDescriptionField
+          value={jobDescription}
+          onChange={onJobDescriptionChange}
+        />
+
+        {/* The action lives with the inputs and appears once there's a file to
+            act on. Its label reflects whether a JD will be compared. */}
+        {file ? (
+          <div className="pt-2 text-center">
+            <button
+              type="button"
+              onClick={onAnalyze}
+              className="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-4 font-display text-base font-medium text-on-primary shadow-card transition-transform hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-surface"
+            >
+              {jobDescription.trim() ? 'Analyze & compare' : 'Analyze resume'}
+              <ArrowRight className="size-4" aria-hidden="true" />
+            </button>
+          </div>
+        ) : null}
       </div>
 
       <ul className="mt-24 grid gap-10 border-t border-outline-variant/60 pt-14 sm:grid-cols-3">
@@ -161,91 +177,63 @@ export function UploadView({
   )
 }
 
-function SelectedFile({
-  file,
-  jobDescription,
-  onJobDescriptionChange,
-  onClear,
-  onAnalyze,
-}: {
-  file: File
-  jobDescription: string
-  onJobDescriptionChange: (value: string) => void
-  onClear: () => void
-  onAnalyze: () => void
-}) {
-  // Open by default if a JD is already present (e.g. returning from a retry).
-  const [showJob, setShowJob] = useState(jobDescription.trim().length > 0)
-  const remaining = MAX_JOB_DESCRIPTION_CHARS - jobDescription.length
-
+/** The chosen resume, replacing the dropzone once a file is picked. */
+function SelectedFile({ file, onClear }: { file: File; onClear: () => void }) {
   return (
-    <div className="mx-auto max-w-xl text-center">
-      <div className="flex items-center gap-4 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-4 text-left shadow-card">
-        <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-secondary-container/50">
-          <FileText className="size-5 text-secondary" aria-hidden="true" />
-        </div>
-
-        <div className="min-w-0 flex-1">
-          {/* Filenames get long and have no spaces to wrap on. */}
-          <p className="truncate font-display text-sm font-medium">{file.name}</p>
-          <p className="mt-0.5 text-xs text-on-surface-variant">{formatFileSize(file.size)}</p>
-        </div>
-
-        <button
-          type="button"
-          onClick={onClear}
-          className="flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-error transition-colors hover:bg-error-container focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
-        >
-          <Trash2 className="size-4" aria-hidden="true" />
-          Remove
-        </button>
+    <div className="flex items-center gap-4 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-4 text-left shadow-card">
+      <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-secondary-container/50">
+        <FileText className="size-5 text-secondary" aria-hidden="true" />
       </div>
 
-      {/* Optional JD: a quiet reveal so the default stays a one-click flow. */}
-      <div className="mt-4 text-left">
-        {showJob ? (
-          <div className="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-4 shadow-card">
-            <label
-              htmlFor="job-description"
-              className="flex items-center gap-2 font-display text-sm font-medium"
-            >
-              <Briefcase className="size-4 text-secondary" aria-hidden="true" />
-              Compare to a job description
-              <span className="font-sans font-normal text-on-surface-variant">(optional)</span>
-            </label>
-            <textarea
-              id="job-description"
-              value={jobDescription}
-              maxLength={MAX_JOB_DESCRIPTION_CHARS}
-              onChange={(event) => onJobDescriptionChange(event.target.value)}
-              placeholder="Paste the job posting here to see how well your resume fits and what to change."
-              className="mt-3 h-36 w-full resize-y rounded-lg border border-outline-variant bg-surface p-3 text-sm leading-relaxed outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
-            />
-            <p className="mt-1.5 text-right text-xs text-on-surface-variant tabular-nums">
-              {remaining.toLocaleString()} characters left
-            </p>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setShowJob(true)}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-outline-variant px-4 py-3.5 font-display text-sm font-medium text-on-surface-variant transition-colors hover:border-outline hover:text-on-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-surface"
-          >
-            <Briefcase className="size-4" aria-hidden="true" />
-            Compare to a job description
-            <span className="font-sans font-normal">(optional)</span>
-          </button>
-        )}
+      <div className="min-w-0 flex-1">
+        {/* Filenames get long and have no spaces to wrap on. */}
+        <p className="truncate font-display text-sm font-medium">{file.name}</p>
+        <p className="mt-0.5 text-xs text-on-surface-variant">{formatFileSize(file.size)}</p>
       </div>
 
       <button
         type="button"
-        onClick={onAnalyze}
-        className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary px-8 py-4 font-display text-base font-medium text-on-primary shadow-card transition-transform hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-surface"
+        onClick={onClear}
+        className="flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-error transition-colors hover:bg-error-container focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
       >
-        {jobDescription.trim() ? 'Analyze & compare' : 'Analyze resume'}
-        <ArrowRight className="size-4" aria-hidden="true" />
+        <Trash2 className="size-4" aria-hidden="true" />
+        Remove
       </button>
+    </div>
+  )
+}
+
+/** The optional job description, a peer input shown alongside the upload. */
+function JobDescriptionField({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (value: string) => void
+}) {
+  const remaining = MAX_JOB_DESCRIPTION_CHARS - value.length
+
+  return (
+    <div className="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-4 text-left shadow-card">
+      <label
+        htmlFor="job-description"
+        className="flex items-center gap-2 font-display text-sm font-medium"
+      >
+        <Briefcase className="size-4 text-secondary" aria-hidden="true" />
+        Compare to a job description
+        <span className="font-sans font-normal text-on-surface-variant">(optional)</span>
+      </label>
+      <textarea
+        id="job-description"
+        value={value}
+        maxLength={MAX_JOB_DESCRIPTION_CHARS}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder="Paste a job posting to see how well your resume fits it — and exactly what to change to fit better."
+        className="mt-3 h-32 w-full resize-y rounded-lg border border-outline-variant bg-surface p-3 text-sm leading-relaxed outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+      />
+      <p className="mt-1.5 text-right text-xs text-on-surface-variant tabular-nums">
+        {remaining.toLocaleString()} characters left
+      </p>
     </div>
   )
 }
