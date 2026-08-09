@@ -1,4 +1,4 @@
-import { CircleAlert } from 'lucide-react'
+import { ArrowRight, CircleAlert } from 'lucide-react'
 import type { CriticalFix } from '@/schemas/analysis'
 
 type CriticalFixesProps = {
@@ -43,10 +43,20 @@ export function CriticalFixes({ fixes }: CriticalFixesProps) {
                 {fix.title}
               </h3>
             </div>
-            <p className="mt-2 text-sm leading-relaxed text-on-surface-variant">
-              {fix.detail}{' '}
-              <span className="font-semibold text-on-error-container">Fix:</span> {fix.fix}
-            </p>
+            <p className="mt-2 text-sm leading-relaxed text-on-surface-variant">{fix.detail}</p>
+
+            {/* The fix is the actionable half, so it gets its own inset line
+                rather than trailing the problem as run-on text. */}
+            <div className="mt-3 flex gap-2.5 rounded-lg bg-surface-container-lowest p-3.5">
+              <ArrowRight
+                className="mt-0.5 size-4 shrink-0 text-on-error-container"
+                aria-hidden="true"
+              />
+              <p className="text-sm leading-relaxed text-on-surface">
+                <span className="font-display font-semibold text-on-error-container">Fix </span>
+                {fix.fix}
+              </p>
+            </div>
           </li>
         ))}
       </ul>

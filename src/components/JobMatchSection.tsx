@@ -1,4 +1,4 @@
-import { Briefcase, Lightbulb } from 'lucide-react'
+import { ArrowRight, Briefcase, Lightbulb } from 'lucide-react'
 import type { JobMatch } from '@/schemas/analysis'
 import { scoreBand, type ScoreBand } from '@/lib/scoring'
 import { PriorityChips } from '@/components/PriorityChips'
@@ -72,11 +72,22 @@ export function JobMatchSection({ jobMatch }: { jobMatch: JobMatch }) {
                   className="mt-0.5 size-4 shrink-0 text-secondary"
                   aria-hidden="true"
                 />
-                <div>
+                <div className="min-w-0 flex-1">
                   <h4 className="font-display text-sm font-semibold">{fix.title}</h4>
                   <p className="mt-1 text-sm leading-relaxed text-on-surface-variant">
-                    {fix.detail} <span className="font-medium text-on-surface">{fix.fix}</span>
+                    {fix.detail}
                   </p>
+                  {/* Same split as Critical fixes: the action gets its own inset. */}
+                  <div className="mt-2.5 flex gap-2.5 rounded-lg bg-surface-container-lowest p-3">
+                    <ArrowRight
+                      className="mt-0.5 size-4 shrink-0 text-secondary"
+                      aria-hidden="true"
+                    />
+                    <p className="text-sm leading-relaxed text-on-surface">
+                      <span className="font-display font-semibold text-secondary">Fix </span>
+                      {fix.fix}
+                    </p>
+                  </div>
                 </div>
               </li>
             ))}
