@@ -26,7 +26,7 @@ const HEADLINE: Record<ScoreBand, { named: (name: string) => string; anonymous: 
 export function verdictHeadline(band: ScoreBand, name: string | null): string {
   const copy = HEADLINE[band]
   const trimmed = name?.trim()
-  return trimmed ? copy.named(firstName(trimmed)) : copy.anonymous
+  return trimmed ? copy.named(firstName(displayName(trimmed))) : copy.anonymous
 }
 
 /**
@@ -35,4 +35,15 @@ export function verdictHeadline(band: ScoreBand, name: string | null): string {
  */
 function firstName(fullName: string): string {
   return fullName.split(/\s+/)[0] ?? fullName
+}
+
+/**
+ * Resumes often print the name in all caps ("ALEX PARK"), which reads as
+ * shouting in a headline. Title-case those, but leave any name that already
+ * carries lowercase alone — so intentional casing like "McDonald" or "DeShawn"
+ * is never flattened.
+ */
+export function displayName(name: string): string {
+  if (name !== name.toUpperCase()) return name
+  return name.toLowerCase().replace(/\b\p{L}/gu, (char) => char.toUpperCase())
 }

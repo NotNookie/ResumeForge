@@ -1,4 +1,7 @@
-export const MAX_FILE_BYTES = 5 * 1024 * 1024
+// 4MB, not 5: Vercel's serverless request-body limit is ~4.5MB, so a larger
+// file would pass this check and then fail at the platform with an opaque error.
+// Real resumes are well under 1MB, so this costs nothing in practice.
+export const MAX_FILE_BYTES = 4 * 1024 * 1024
 export const ACCEPTED_EXTENSIONS = ['.pdf', '.docx'] as const
 
 /** Client-side cap for the optional job description. The server enforces its own

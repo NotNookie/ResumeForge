@@ -39,7 +39,7 @@ describe('validateResumeFile', () => {
     const rejection = validateResumeFile(file({ size: 8.4 * 1024 * 1024 }))
     expect(rejection?.reason).toBe('size')
     expect(rejection?.message).toContain('8.4 MB')
-    expect(rejection?.message).toContain('5.0 MB')
+    expect(rejection?.message).toContain('4.0 MB')
   })
 
   it('accepts a file exactly at the limit', () => {

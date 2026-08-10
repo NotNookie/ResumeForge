@@ -1,7 +1,7 @@
 import { RotateCw } from 'lucide-react'
 import type { Analysis } from '@/schemas/analysis'
 import { scoreBand } from '@/lib/scoring'
-import { verdictHeadline } from '@/lib/verdict'
+import { displayName, verdictHeadline } from '@/lib/verdict'
 import { ScoreCard } from '@/components/ScoreCard'
 import { JobMatchSection } from '@/components/JobMatchSection'
 import { CriticalFixes } from '@/components/CriticalFixes'
@@ -30,7 +30,7 @@ export function ResultsView({ analysis, onReset }: ResultsViewProps) {
           </p>
           {candidate.name ? (
             <p className="hidden font-display text-xs font-medium tracking-[0.04em] text-on-surface-variant sm:block">
-              {candidate.name}
+              {displayName(candidate.name)}
             </p>
           ) : null}
         </div>

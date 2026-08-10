@@ -5,8 +5,9 @@ import { analyzeResumeText, AiUnavailableError, RateLimitedError } from './gemin
 import { looksLikeResume } from './resume-heuristic'
 
 /** Server-side ceiling. The client enforces the same, but the server must not
- * trust it — this is the real boundary. */
-export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024
+ * trust it — this is the real boundary. Kept under Vercel's ~4.5MB request-body
+ * limit so oversized uploads fail here with a clear message, not at the platform. */
+export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024
 
 /** Resumes run a few thousand characters; anything past this is noise (or an
  * attempt to run up token cost), so it's truncated before reaching the model. */

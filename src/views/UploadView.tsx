@@ -127,7 +127,7 @@ export function UploadView({
               </span>
 
               <span className="mt-8 rounded-full bg-surface-container px-3 py-1.5 font-display text-[11px] font-medium tracking-[0.08em] text-on-surface-variant uppercase">
-                PDF or DOCX · Max 5 MB
+                PDF or DOCX · Max 4 MB
               </span>
             </label>
 
