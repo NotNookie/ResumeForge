@@ -1,5 +1,17 @@
-import { extractText, getDocumentProxy } from 'unpdf'
+import { definePDFJSModule, extractText, getDocumentProxy } from 'unpdf'
+// Static import of unpdf's bundled pdfjs. By default unpdf lazy-loads it via a
+// dynamic `import('unpdf/pdfjs')`, which Vercel's function tracer doesn't follow
+// — so on Vercel pdfjs is missing and every PDF extracts to empty text. A static
+// import is traced and bundled; definePDFJSModule below wires it in explicitly.
+import * as pdfjsModule from 'unpdf/pdfjs'
 import mammoth from 'mammoth'
+
+// Register the statically-imported pdfjs once, before the first extraction.
+let pdfjsRegistered: Promise<void> | undefined
+function ensurePdfjs(): Promise<void> {
+  pdfjsRegistered ??= definePDFJSModule(() => Promise.resolve(pdfjsModule))
+  return pdfjsRegistered
+}
 
 /**
  * Server-only. Turns an uploaded resume into clean plain text, or throws a
@@ -70,6 +82,7 @@ function startsWith(bytes: Uint8Array, signature: number[]): boolean {
 
 async function extractPdf(bytes: Uint8Array): Promise<string> {
   try {
+    await ensurePdfjs()
     const pdf = await getDocumentProxy(bytes)
     const { text } = await extractText(pdf, { mergePages: true })
     return text
