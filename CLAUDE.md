@@ -18,7 +18,7 @@ download. Those are explicitly deferred; don't build toward them yet.
 
 ## Stack
 
-React 19 + TypeScript 7 + Vite 8, Tailwind 4, Zod 4, Vitest 4. Deploys to
+React 19 + TypeScript 5 + Vite 8, Tailwind 4, Zod 4, Vitest 4. Deploys to
 Vercel: static frontend plus serverless functions in `api/`. No separate
 backend server.
 
@@ -27,8 +27,11 @@ Three of these differ from what most tutorials assume:
 - **Tailwind 4** has no `tailwind.config.js` and no PostCSS step. It's the
   `@tailwindcss/vite` plugin plus `@import "tailwindcss"` in `src/index.css`.
   Ignore any guide that says `npx tailwindcss init`.
-- **TypeScript 7** (native compiler) removed `baseUrl`. Path aliases in
-  `tsconfig.json` must be relative (`"@/*": ["./src/*"]`).
+- **TypeScript pinned to 5.x**, not the 7 native-preview compiler. Vercel's
+  `@vercel/node` function builder can't drive the TS 7 compiler API yet and
+  crashes at deploy (`Cannot read properties of undefined (reading 'readFile')`).
+  Path aliases stay relative (`"@/*": ["./src/*"]`) — valid in both, and no
+  `baseUrl` (TS 7 removed it; TS 5 doesn't need it for relative `paths`).
 - **Zod 4** — check imports against v4, not v3 docs.
 
 ## Architecture
