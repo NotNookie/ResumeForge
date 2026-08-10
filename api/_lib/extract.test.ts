@@ -48,6 +48,14 @@ const RESUME_LINES = [
 ]
 
 describe('extractResumeText', () => {
+  it('extracts text from a PDF passed as a Node Buffer (the Vercel case)', async () => {
+    // On Vercel the request body arrives as a Buffer, not a plain Uint8Array,
+    // and pdfjs rejects Buffer. This reproduces that exact condition.
+    const pdf = Buffer.from(await makePdf(RESUME_LINES))
+    const text = await extractResumeText(pdf, 'resume.pdf')
+    expect(text).toContain('Sarah Chen')
+  })
+
   it('extracts text from a PDF', async () => {
     const pdf = await makePdf(RESUME_LINES)
     const text = await extractResumeText(pdf, 'resume.pdf')

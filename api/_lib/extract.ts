@@ -58,9 +58,7 @@ export async function extractResumeText(bytes: Uint8Array, filename = 'the file'
 
   if (countNonWhitespace(text) < MIN_MEANINGFUL_CHARS) {
     throw new NoTextFoundError(
-      // TEMP DIAGNOSTIC: the char counts reveal whether extraction produced
-      // nothing (pdfjs missing on Vercel) vs a genuinely image-only file.
-      `Found no readable text in ${filename} [${kind}, raw=${raw.length}, clean=${countNonWhitespace(text)}].`,
+      `Found no readable text in ${filename}. It's most likely a scanned image rather than a text document.`,
     )
   }
   return text
@@ -85,7 +83,10 @@ function startsWith(bytes: Uint8Array, signature: number[]): boolean {
 async function extractPdf(bytes: Uint8Array): Promise<string> {
   try {
     await ensurePdfjs()
-    const pdf = await getDocumentProxy(bytes)
+    // pdfjs rejects a Node Buffer and demands a plain Uint8Array. On Vercel the
+    // request body arrives as a Buffer (a Uint8Array subclass), so re-wrap it.
+    const data = bytes.constructor === Uint8Array ? bytes : new Uint8Array(bytes)
+    const pdf = await getDocumentProxy(data)
     const { text } = await extractText(pdf, { mergePages: true })
     return text
   } catch (error) {

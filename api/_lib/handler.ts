@@ -50,11 +50,7 @@ export async function respondToAnalyze(req: IncomingMessage, res: ServerResponse
     const failure = toAnalysisFailure(error)
     // Server-side visibility; the client only ever sees the failure code.
     if (failure === 'unknown' || failure === 'aiUnavailable') console.error('[analyze]', error)
-    // TEMP DIAGNOSTIC (remove): surface the real error + cause so PDF extraction
-    // failures on Vercel are visible from a curl, not just the runtime logs.
-    const dbg = (e: unknown): string =>
-      e instanceof Error ? `${e.name}: ${e.message}${e.cause ? ` | cause: ${dbg(e.cause)}` : ''}` : String(e)
-    return sendJson(res, statusForFailure(failure), { failure, debug: dbg(error) })
+    return sendJson(res, statusForFailure(failure), { failure })
   }
 }
 
