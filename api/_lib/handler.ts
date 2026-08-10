@@ -5,8 +5,8 @@ import {
   toAnalysisFailure,
   MAX_UPLOAD_BYTES,
   NotAResumeError,
-} from './pipeline'
-import { checkRateLimit, clientIp, rateLimitStore } from './rate-limit'
+} from './pipeline.js'
+import { checkRateLimit, clientIp, rateLimitStore } from './rate-limit.js'
 
 /** Thrown mid-stream when an upload exceeds the cap, so we stop reading rather
  * than buffer the whole oversized payload before rejecting it. */

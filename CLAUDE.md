@@ -49,11 +49,20 @@ Import via the `@/` alias (`@/lib/scoring`), not deep relative paths
 (`../../lib/scoring`). The alias is declared in **both** `tsconfig.json` and
 `vite.config.ts` — changing one without the other breaks the build.
 
-**Exception: server code in `api/` uses relative imports, never `@/`.** Vercel's
-`@vercel/node` function bundler doesn't resolve the tsconfig path alias, so a
-`@/…` import in the serverless graph crashes the function at load (a 500). This
-includes the handful of `src/` modules the functions pull in (`schemas/analysis`,
-`lib/view-state`, `lib/scoring`) — those import each other relatively too.
+**Exception: server code in `api/` uses relative imports _with explicit `.js`
+extensions_, never `@/`.** Two reasons, both Vercel-runtime facts that Vite
+hides locally:
+- Vercel's `@vercel/node` doesn't resolve the tsconfig `@/` path alias.
+- Vercel compiles the functions to JS and runs them as **native Node ESM**,
+  which requires the `.js` extension on relative imports (`./pipeline.js`,
+  `../../src/schemas/analysis.js`). Extensionless imports work under Vite/Vitest
+  but throw `ERR_MODULE_NOT_FOUND` on Vercel — a function-load 500.
+
+This applies transitively to the `src/` modules the functions pull in
+(`schemas/analysis`, `lib/view-state`, `lib/scoring`): they import each other
+relatively and with `.js` too. Verify server changes by emitting real JS
+(`tsc` without bundling) and running it under `node` — bundlers paper over both
+problems.
 
 ### The rule that matters most
 

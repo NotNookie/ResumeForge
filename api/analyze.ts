@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import { respondToAnalyze } from './_lib/handler'
+import { respondToAnalyze } from './_lib/handler.js'
 
 /**
  * A resume analysis runs 20-40s (a Gemini call plus retries), well past Vercel's

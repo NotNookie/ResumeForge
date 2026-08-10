@@ -1,9 +1,9 @@
 // Relative, not the @/ alias — Vercel's function bundler doesn't resolve it.
-import type { Analysis } from '../../src/schemas/analysis'
-import type { AnalysisFailure } from '../../src/lib/view-state'
-import { extractResumeText, NoTextFoundError, UnreadableFileError } from './extract'
-import { analyzeResumeText, AiUnavailableError, RateLimitedError } from './gemini'
-import { looksLikeResume } from './resume-heuristic'
+import type { Analysis } from '../../src/schemas/analysis.js'
+import type { AnalysisFailure } from '../../src/lib/view-state.js'
+import { extractResumeText, NoTextFoundError, UnreadableFileError } from './extract.js'
+import { analyzeResumeText, AiUnavailableError, RateLimitedError } from './gemini.js'
+import { looksLikeResume } from './resume-heuristic.js'
 
 /** Server-side ceiling. The client enforces the same, but the server must not
  * trust it — this is the real boundary. Kept under Vercel's ~4.5MB request-body
