@@ -58,7 +58,9 @@ export async function extractResumeText(bytes: Uint8Array, filename = 'the file'
 
   if (countNonWhitespace(text) < MIN_MEANINGFUL_CHARS) {
     throw new NoTextFoundError(
-      `Found no readable text in ${filename}. It's most likely a scanned image rather than a text document.`,
+      // TEMP DIAGNOSTIC: the char counts reveal whether extraction produced
+      // nothing (pdfjs missing on Vercel) vs a genuinely image-only file.
+      `Found no readable text in ${filename} [${kind}, raw=${raw.length}, clean=${countNonWhitespace(text)}].`,
     )
   }
   return text
