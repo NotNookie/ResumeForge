@@ -1,4 +1,6 @@
-import type { Analysis } from '@/schemas/analysis'
+// Relative, not @/: pulled into the api/ serverless bundle, which can't resolve
+// the alias.
+import type { Analysis } from '../schemas/analysis'
 
 /**
  * The whole app is one linear flow, so its screens are states rather than

@@ -49,6 +49,12 @@ Import via the `@/` alias (`@/lib/scoring`), not deep relative paths
 (`../../lib/scoring`). The alias is declared in **both** `tsconfig.json` and
 `vite.config.ts` — changing one without the other breaks the build.
 
+**Exception: server code in `api/` uses relative imports, never `@/`.** Vercel's
+`@vercel/node` function bundler doesn't resolve the tsconfig path alias, so a
+`@/…` import in the serverless graph crashes the function at load (a 500). This
+includes the handful of `src/` modules the functions pull in (`schemas/analysis`,
+`lib/view-state`, `lib/scoring`) — those import each other relatively too.
+
 ### The rule that matters most
 
 **`api/` is the only place secrets exist.** The AI key is a Vercel env var read

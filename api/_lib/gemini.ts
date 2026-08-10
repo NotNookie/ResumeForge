@@ -1,4 +1,6 @@
-import { analysisSchema, type Analysis } from '@/schemas/analysis'
+// Relative, not the @/ alias: Vercel's function bundler doesn't resolve the
+// tsconfig path alias, so server-reachable imports into src/ must be relative.
+import { analysisSchema, type Analysis } from '../../src/schemas/analysis'
 import { buildAnalysisPrompt } from './prompt'
 
 /** The AI is temporarily rate-limited (free-tier quota, or a burst of load). */

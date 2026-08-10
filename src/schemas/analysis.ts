@@ -1,5 +1,7 @@
 import { z } from 'zod'
-import { clampScore } from '@/lib/scoring'
+// Relative, not @/: this module is imported by the api/ serverless functions,
+// whose Vercel bundler doesn't resolve the alias.
+import { clampScore } from '../lib/scoring'
 
 /**
  * The contract with the AI. This is the single source of truth for the shape of

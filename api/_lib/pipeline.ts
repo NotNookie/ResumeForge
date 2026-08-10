@@ -1,5 +1,6 @@
-import type { Analysis } from '@/schemas/analysis'
-import type { AnalysisFailure } from '@/lib/view-state'
+// Relative, not the @/ alias — Vercel's function bundler doesn't resolve it.
+import type { Analysis } from '../../src/schemas/analysis'
+import type { AnalysisFailure } from '../../src/lib/view-state'
 import { extractResumeText, NoTextFoundError, UnreadableFileError } from './extract'
 import { analyzeResumeText, AiUnavailableError, RateLimitedError } from './gemini'
 import { looksLikeResume } from './resume-heuristic'
