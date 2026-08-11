@@ -4,7 +4,7 @@ AI resume analysis. Upload a PDF or DOCX and get an ATS-compatibility score, a
 recruiter score, and specific, actionable feedback in under a minute — no
 account, no database, nothing stored.
 
-**Live:** _add your Vercel URL here_
+Live: resume-forge-rouge-kappa.vercel.app
 
 > Most free resume checkers scan for keywords and paywall the actual advice.
 > ResumeForge judges both how an applicant-tracking system parses your resume
