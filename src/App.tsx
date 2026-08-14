@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Analytics } from '@vercel/analytics/react'
 import { SiteHeader } from '@/components/SiteHeader'
 import { SiteFooter } from '@/components/SiteFooter'
 import { UploadView } from '@/views/UploadView'
@@ -50,6 +51,7 @@ function App() {
       {renderView()}
 
       <SiteFooter />
+      <Analytics />
     </div>
   )
 
